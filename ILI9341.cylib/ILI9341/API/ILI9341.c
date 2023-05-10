@@ -616,9 +616,9 @@ void `$INSTANCE_NAME`_EndWrite(void){
 /**************************************************************************/
 void `$INSTANCE_NAME`_WriteCommand(uint8_t cmd)
 { 
-    `$DC_PIN`_LOW(); 
+    // `$DC_PIN`_LOW(); 
     `$INSTANCE_NAME`_SpiWrite(cmd); 
-    `$DC_PIN`_HIGH();
+    // `$DC_PIN`_HIGH();
 }
 
 /**************************************************************************/
