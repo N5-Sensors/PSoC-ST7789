@@ -12,7 +12,7 @@
 
 #include "`$INSTANCE_NAME`.h"
 #include "`$CS_PIN`.h"
-#include "`$DC_PIN`.h"
+// #include "`$DC_PIN`.h"
 #include "`$SPI_Master`.h"
 
 #ifndef HIGH
