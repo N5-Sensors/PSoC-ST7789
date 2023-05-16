@@ -1,11 +1,11 @@
 # PSoC ST7789 Custom Component
 This repository contains a PSoC Creator Library Project featuring a 
-[ST7789](https://www.adafruit.com/product/1770)
+[ST7789](https://learn.adafruit.com/adafruit-1-47-round-rectangle-tft-display)
 Custom Component. This work is based on the on the
-[Adafruit ST7789 library](https://github.com/adafruit/Adafruit_ST7789) and on the [Adafruit GFX library](https://github.com/adafruit/Adafruit-GFX-Library). 
+[Adafruit ST7789 library](https://github.com/adafruit/Adafruit-ST7735-Library) and on the [Adafruit GFX library](https://github.com/adafruit/Adafruit-GFX-Library). 
 
 ## Adafruit ST7789
-2.8" TFT LCD with Touchscreen Breakout Board w/MicroSD Socket - [ST7789](https://www.adafruit.com/product/1770), This LCD display is 2.8" TFT display with resistive/capacitive touchscreen. The display has a resolution of 240x320 pixels with individual RGB pixel control.
+Adafruit 1.47" Round Rectangle TFT Display - [ST7789](https://learn.adafruit.com/adafruit-1-47-round-rectangle-tft-display), This LCD display is Adafruit 1.47" Round Rectangle TFT Display. The display has a resolution of 172x320 pixels with individual RGB pixel control.
 
 ## PSoC Custom Component
 ![alt text](https://i.imgur.com/PtuBFDf.png, "ST7789 Custom Component")
