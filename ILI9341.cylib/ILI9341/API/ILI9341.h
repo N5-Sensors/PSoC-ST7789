@@ -9,17 +9,17 @@
 *
 */
 
-#ifndef ILI9341_STRUCT
-    #define ILI9341_STRUCT
+#ifndef ST7789_STRUCT
+    #define ST7789_STRUCT
     #include "cytypes.h"
     #include "`$INSTANCE_NAME`_gfxfont.h"
      /**
-     * @brief ILI9341 Struct.
+     * @brief ST7789 Struct.
      *
      * This struct contains parameter useful for graphics handling.
     */
 
-    typedef struct ILI9341_Struct{
+    typedef struct ST7789_Struct{
         int16_t        
             cursor_x,       ///< x location to start print()ing text
             cursor_y;       ///< y location to start print()ing text
@@ -36,7 +36,7 @@
             height;         ///< Display height as modified by current rotation
         uint8_t cp437;      ///< If set, use correct CP437 charset (default is off)
         GFXfont *gfxFont;   ///< Pointer to special font
-    } ILI9341;
+    } ST7789;
 #endif
 
 #ifndef _ADAFRUIT_`$INSTANCE_NAME`H_
@@ -45,8 +45,8 @@
 #include "cytypes.h"
 #include "`$INSTANCE_NAME`_gfxfont.h"
 
-#define `$INSTANCE_NAME`_TFTWIDTH   240       ///< ILI9341 max TFT width
-#define `$INSTANCE_NAME`_TFTHEIGHT  320       ///< ILI9341 max TFT height
+#define `$INSTANCE_NAME`_TFTWIDTH   240       ///< ST7789 max TFT width
+#define `$INSTANCE_NAME`_TFTHEIGHT  320       ///< ST7789 max TFT height
 
 #define `$INSTANCE_NAME`_NOP        0x00      ///< No-op register
 #define `$INSTANCE_NAME`_SWRESET    0x01      ///< Software reset register
@@ -125,7 +125,7 @@
 #define `$INSTANCE_NAME`_GREENYELLOW 0xAFE5      ///< 173, 255,  47
 #define `$INSTANCE_NAME`_PINK        0xFC18      ///< 255, 128, 192
 
-// Allow overloading of ILI9341_WritePixel function
+// Allow overloading of ST7789_WritePixel function
 #define `$INSTANCE_NAME`_WritePixel(_1, ...) _Generic((_1),          \
                                         uint16_t: `$INSTANCE_NAME`_WritePixelColor, \
                                         default: `$INSTANCE_NAME`_WritePixelFull \
@@ -135,27 +135,27 @@
 
 
     
-void      `$INSTANCE_NAME`_Start(ILI9341 *`$INSTANCE_NAME`);
-void      `$INSTANCE_NAME`_SetRotation(ILI9341 *`$INSTANCE_NAME`, uint8_t r);
+void      `$INSTANCE_NAME`_Start(ST7789 *`$INSTANCE_NAME`);
+void      `$INSTANCE_NAME`_SetRotation(ST7789 *`$INSTANCE_NAME`, uint8_t r);
 void      `$INSTANCE_NAME`_InvertDisplay(uint8_t i);
 void      `$INSTANCE_NAME`_ScrollTo(uint16_t y);
 
 // Required Non-Transaction
-void      `$INSTANCE_NAME`_DrawPixel(ILI9341 *`$INSTANCE_NAME`, int16_t x, int16_t y, 
+void      `$INSTANCE_NAME`_DrawPixel(ST7789 *`$INSTANCE_NAME`, int16_t x, int16_t y, 
             uint16_t color);
 
 // Transaction API
 void      `$INSTANCE_NAME`_StartWrite(void);
 void      `$INSTANCE_NAME`_EndWrite(void);
-/*void      `$INSTANCE_NAME`_WritePixel(ILI9341 *ili9341, int16_t x, int16_t y, 
+/*void      `$INSTANCE_NAME`_WritePixel(ST7789 *st7789, int16_t x, int16_t y, 
             uint16_t color);*/
-void      `$INSTANCE_NAME`_WritePixelFull(ILI9341 *ili9341, int16_t x, int16_t y, 
+void      `$INSTANCE_NAME`_WritePixelFull(ST7789 *st7789, int16_t x, int16_t y, 
             uint16_t color);
-void      `$INSTANCE_NAME`_WriteFillRect(ILI9341 *ili9341, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_WriteFillRect(ST7789 *st7789, int16_t x, int16_t y,
             int16_t w, int16_t h, uint16_t color);
-void      `$INSTANCE_NAME`_WriteFastVLine(ILI9341 *ili9341, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_WriteFastVLine(ST7789 *st7789, int16_t x, int16_t y,
             int16_t h, uint16_t color);
-void      `$INSTANCE_NAME`_WriteFastHLine(ILI9341 *ili9341, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_WriteFastHLine(ST7789 *st7789, int16_t x, int16_t y,
             int16_t w, uint16_t color);
 
 // Transaction API not used by GFX
@@ -167,14 +167,14 @@ void      `$INSTANCE_NAME`_WriteColor(uint16_t color, uint32_t len);
 void      `$INSTANCE_NAME`_PushColor(uint16_t color);
 
 // Recommended Non-Transaction
-void      `$INSTANCE_NAME`_DrawFastVLine(ILI9341 *ili3941, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_DrawFastVLine(ST7789 *ili3941, int16_t x, int16_t y,
             int16_t h, uint16_t color);
-void      `$INSTANCE_NAME`_DrawFastHLine(ILI9341 *ili3941, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_DrawFastHLine(ST7789 *ili3941, int16_t x, int16_t y,
             int16_t w, uint16_t color);
-void      `$INSTANCE_NAME`_FillRect(ILI9341 *ili9341, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_FillRect(ST7789 *st7789, int16_t x, int16_t y,
             int16_t w, int16_t h, uint16_t color);
-void      `$INSTANCE_NAME`_FillScreen(ILI9341 *ili1341, uint16_t color);
-void      `$INSTANCE_NAME`_DrawRGBBitmap(ILI9341 *ili9341, int16_t x, int16_t y,
+void      `$INSTANCE_NAME`_FillScreen(ST7789 *ili1341, uint16_t color);
+void      `$INSTANCE_NAME`_DrawRGBBitmap(ST7789 *st7789, int16_t x, int16_t y,
                 uint16_t *pcolors, int16_t w, int16_t h);
 
 uint8_t   `$INSTANCE_NAME`_ReadCommand8(uint8_t reg, uint8_t index);

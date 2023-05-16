@@ -83,12 +83,12 @@ uint16_t `$INSTANCE_NAME`_Color565(uint8_t red, uint8_t green, uint8_t blue) {
 
 /**************************************************************************/
 /*!
-*    @brief   Initialize ILI9341 chip
-*    Connects to the ILI9341 over SPI and sends initialization procedure commands
-*    @param   ili9341 ILI9341 object to store width and height dimensions
+*    @brief   Initialize ST7789 chip
+*    Connects to the ST7789 over SPI and sends initialization procedure commands
+*    @param   st7789 ST7789 object to store width and height dimensions
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_Start(ILI9341 *ili9341)
+void `$INSTANCE_NAME`_Start(ST7789 *st7789)
 {
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteCommand(0x01);
@@ -212,10 +212,10 @@ void `$INSTANCE_NAME`_Start(ILI9341 *ili9341)
     `$INSTANCE_NAME`_EndWrite();
     
     // Set struct parameters
-    ili9341->width   = `$INSTANCE_NAME`_TFTWIDTH;
-    ili9341->height  = `$INSTANCE_NAME`_TFTHEIGHT;
-    ili9341->cp437   = 1;
-    ili9341->wrap    = 1;
+    st7789->width   = `$INSTANCE_NAME`_TFTWIDTH;
+    st7789->height  = `$INSTANCE_NAME`_TFTHEIGHT;
+    st7789->cp437   = 1;
+    st7789->wrap    = 1;
     
 }
 
@@ -225,28 +225,28 @@ void `$INSTANCE_NAME`_Start(ILI9341 *ili9341)
     @param   m  The index for rotation, from 0-3 inclusive
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_SetRotation(ILI9341 *ili9341, uint8_t m) {
-    ili9341->rotation = m % 4; // can't be higher than 3
-    switch (ili9341->rotation) {
+void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
+    st7789->rotation = m % 4; // can't be higher than 3
+    switch (st7789->rotation) {
         case 0:
             m = (MADCTL_MX | MADCTL_BGR);
-            ili9341->width  = `$INSTANCE_NAME`_TFTWIDTH;
-            ili9341->height = `$INSTANCE_NAME`_TFTHEIGHT;
+            st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
+            st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 1:
             m = (MADCTL_MV | MADCTL_BGR);
-            ili9341->width  = `$INSTANCE_NAME`_TFTHEIGHT;
-            ili9341->height = `$INSTANCE_NAME`_TFTWIDTH;
+            st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
+            st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
         case 2:
             m = (MADCTL_MY | MADCTL_BGR);
-            ili9341->width  = `$INSTANCE_NAME`_TFTWIDTH;
-            ili9341->height = `$INSTANCE_NAME`_TFTHEIGHT;
+            st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
+            st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 3:
             m = (MADCTL_MX | MADCTL_MY | MADCTL_MV | MADCTL_BGR);
-            ili9341->width  = `$INSTANCE_NAME`_TFTHEIGHT;
-            ili9341->height = `$INSTANCE_NAME`_TFTWIDTH;
+            st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
+            st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
     }
 
@@ -287,7 +287,7 @@ void `$INSTANCE_NAME`_ScrollTo(uint16_t y) {
 *   @brief   Set the "address window".
 *    
 *   Set the address window. The rectangle we will write to RAM with 
-*   the next chunk of SPI data writes. The ILI9341 will automatically 
+*   the next chunk of SPI data writes. The ST7789 will automatically 
 *   wrap the data as each row is filled
 *   @param   x  TFT memory 'x' origin
 *   @param   y  TFT memory 'y' origin
@@ -324,9 +324,9 @@ void `$INSTANCE_NAME`_PushColor(uint16_t color) {
 * @param color The color to fill the screen with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_FillScreen(ILI9341 *ili9341, uint16_t color){
+void `$INSTANCE_NAME`_FillScreen(ST7789 *st7789, uint16_t color){
     // Fill a fullscreen rect   
-    `$INSTANCE_NAME`_FillRect(ili9341, 0,0, ili9341->width, ili9341->height, color);
+    `$INSTANCE_NAME`_FillRect(st7789, 0,0, st7789->width, st7789->height, color);
 }
 
 /**************************************************************************/
@@ -368,8 +368,8 @@ void `$INSTANCE_NAME`_WriteColor(uint16_t color, uint32_t len){
 *    @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_WritePixelFull(ILI9341 *ili9341, int16_t x, int16_t y, uint16_t color) {
-    if((x < 0) ||(x >= ili9341->width) || (y < 0) || (y >= ili9341->height)) return;
+void `$INSTANCE_NAME`_WritePixelFull(ST7789 *st7789, int16_t x, int16_t y, uint16_t color) {
+    if((x < 0) ||(x >= st7789->width) || (y < 0) || (y >= st7789->height)) return;
     `$INSTANCE_NAME`_SetAddrWindow(x,y,1,1);
     `$INSTANCE_NAME`_WriteColor(color, 1);
 }
@@ -404,9 +404,9 @@ void `$INSTANCE_NAME`_WritePixelColor(uint16_t color) {
 *   @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_WriteFillRect(ILI9341 *ili9341, int16_t x, int16_t y,
+void `$INSTANCE_NAME`_WriteFillRect(ST7789 *st7789, int16_t x, int16_t y,
     int16_t w, int16_t h, uint16_t color){
-    if((x >= ili9341->width) || (y >= ili9341->height)) return;
+    if((x >= st7789->width) || (y >= st7789->height)) return;
     int16_t x2 = x + w - 1, y2 = y + h - 1;
     if((x2 < 0) || (y2 < 0)) return;
 
@@ -421,8 +421,8 @@ void `$INSTANCE_NAME`_WriteFillRect(ILI9341 *ili9341, int16_t x, int16_t y,
     }
 
     // Clip right/bottom
-    if(x2 >= ili9341->width)  w = ili9341->width  - x;
-    if(y2 >= ili9341->height) h = ili9341->height - y;
+    if(x2 >= st7789->width)  w = st7789->width  - x;
+    if(y2 >= st7789->height) h = st7789->height - y;
 
     int32_t len = (int32_t)w * h;
     `$INSTANCE_NAME`_SetAddrWindow(x, y, w, h);
@@ -438,8 +438,8 @@ void `$INSTANCE_NAME`_WriteFillRect(ILI9341 *ili9341, int16_t x, int16_t y,
 *   @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_WriteFastVLine(ILI9341 *ili9341, int16_t x, int16_t y, int16_t l, uint16_t color){
-    `$INSTANCE_NAME`_WriteFillRect(ili9341, x, y, 1, l, color);
+void `$INSTANCE_NAME`_WriteFastVLine(ST7789 *st7789, int16_t x, int16_t y, int16_t l, uint16_t color){
+    `$INSTANCE_NAME`_WriteFillRect(st7789, x, y, 1, l, color);
 }
 
 /**************************************************************************/
@@ -451,8 +451,8 @@ void `$INSTANCE_NAME`_WriteFastVLine(ILI9341 *ili9341, int16_t x, int16_t y, int
 *   @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_WriteFastHLine(ILI9341 *ili9341, int16_t x, int16_t y, int16_t l, uint16_t color){
-    `$INSTANCE_NAME`_WriteFillRect(ili9341, x, y, l, 1, color);
+void `$INSTANCE_NAME`_WriteFastHLine(ST7789 *st7789, int16_t x, int16_t y, int16_t l, uint16_t color){
+    `$INSTANCE_NAME`_WriteFillRect(st7789, x, y, l, 1, color);
 }
 
 /**************************************************************************/
@@ -463,9 +463,9 @@ void `$INSTANCE_NAME`_WriteFastHLine(ILI9341 *ili9341, int16_t x, int16_t y, int
 *   @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_DrawPixel(ILI9341 *ili9341, int16_t x, int16_t y, uint16_t color){
+void `$INSTANCE_NAME`_DrawPixel(ST7789 *st7789, int16_t x, int16_t y, uint16_t color){
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_WritePixel(ili9341, x, y, color);
+    `$INSTANCE_NAME`_WritePixel(st7789, x, y, color);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -478,10 +478,10 @@ void `$INSTANCE_NAME`_DrawPixel(ILI9341 *ili9341, int16_t x, int16_t y, uint16_t
 *   @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_DrawFastVLine(ILI9341 *ili9341, int16_t x, int16_t y,
+void `$INSTANCE_NAME`_DrawFastVLine(ST7789 *st7789, int16_t x, int16_t y,
         int16_t l, uint16_t color) {
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_WriteFastVLine(ili9341, x, y, l, color);
+    `$INSTANCE_NAME`_WriteFastVLine(st7789, x, y, l, color);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -494,10 +494,10 @@ void `$INSTANCE_NAME`_DrawFastVLine(ILI9341 *ili9341, int16_t x, int16_t y,
 *   @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_DrawFastHLine(ILI9341 *ili9341, int16_t x, int16_t y,
+void `$INSTANCE_NAME`_DrawFastHLine(ST7789 *st7789, int16_t x, int16_t y,
         int16_t l, uint16_t color) {
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_WriteFastHLine(ili9341, x, y, l, color);
+    `$INSTANCE_NAME`_WriteFastHLine(st7789, x, y, l, color);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -511,7 +511,7 @@ void `$INSTANCE_NAME`_DrawFastHLine(ILI9341 *ili9341, int16_t x, int16_t y,
 *   @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_FillRect(ILI9341 *ili3941, int16_t x, int16_t y, int16_t w, int16_t h,
+void `$INSTANCE_NAME`_FillRect(ST7789 *ili3941, int16_t x, int16_t y, int16_t w, int16_t h,
         uint16_t color) {
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteFillRect(ili3941, x,y,w,h,color);
@@ -522,7 +522,7 @@ void `$INSTANCE_NAME`_FillRect(ILI9341 *ili3941, int16_t x, int16_t y, int16_t w
 /*!
 *   @brief  Draw RGB rectangle of data from RAM to a location on screen
 *   
-*   Adapted from https://github.com/PaulStoffregen/ILI9341_t3
+*   Adapted from https://github.com/PaulStoffregen/ST7789_t3
 *   by Marc MERLIN. See examples/pictureEmbed to use this.
 *   5/6/2017: function name and arguments have changed for compatibility
 *   with current GFX library and to avoid naming problems in prior
@@ -534,12 +534,12 @@ void `$INSTANCE_NAME`_FillRect(ILI9341 *ili3941, int16_t x, int16_t y, int16_t w
 *    @param    h  Height of pcolors rectangle
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_DrawRGBBitmap(ILI9341 *ili9341, int16_t x, int16_t y,
+void `$INSTANCE_NAME`_DrawRGBBitmap(ST7789 *st7789, int16_t x, int16_t y,
   uint16_t *pcolors, int16_t w, int16_t h) {
 
     int16_t x2, y2; // Lower-right coord
-    if(( x             >= ili9341->width ) ||      // Off-edge right
-       ( y             >= ili9341->height) ||      // " top
+    if(( x             >= st7789->width ) ||      // Off-edge right
+       ( y             >= st7789->height) ||      // " top
        ((x2 = (x+w-1)) <  0      ) ||      // " left
        ((y2 = (y+h-1)) <  0)     ) return; // " bottom
 
@@ -555,8 +555,8 @@ void `$INSTANCE_NAME`_DrawRGBBitmap(ILI9341 *ili9341, int16_t x, int16_t y,
         by1 = -y;
         y   =  0;
     }
-    if(x2 >= ili9341->width ) w = ili9341->width  - x; // Clip right
-    if(y2 >= ili9341->height) h = ili9341->height - y; // Clip bottom
+    if(x2 >= st7789->width ) w = st7789->width  - x; // Clip right
+    if(y2 >= st7789->height) h = st7789->height - y; // Clip bottom
 
     pcolors += by1 * saveW + bx1; // Offset bitmap ptr to clipped top-left
     `$INSTANCE_NAME`_StartWrite();
@@ -570,13 +570,13 @@ void `$INSTANCE_NAME`_DrawRGBBitmap(ILI9341 *ili9341, int16_t x, int16_t y,
 
 /**************************************************************************/
 /*!
-*   @brief  Read 8 bits of data from ILI9341 configuration memory. NOT from RAM!
+*   @brief  Read 8 bits of data from ST7789 configuration memory. NOT from RAM!
 *           
-*   Read 8 bits of data from ILI9341 configuration memory. NOT from RAM!
+*   Read 8 bits of data from ST7789 configuration memory. NOT from RAM!
 *   This is highly undocumented/supported, it's really a hack but kinda works?
 *   @param    command  The command register to read data from
 *   @param    index  The byte index into the command to read from
-*   @return   Unsigned 8-bit data read from ILI9341 register
+*   @return   Unsigned 8-bit data read from ST7789 register
 */
 /**************************************************************************/
 uint8_t `$INSTANCE_NAME`_ReadCommand8(uint8_t command, uint8_t index) {
