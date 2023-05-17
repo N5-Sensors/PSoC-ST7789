@@ -21,27 +21,7 @@
 #ifndef LOW
     #define LOW 0
 #endif
-#ifndef MADCTL_MY
-    #define MADCTL_MY  0x80     ///< Bottom to top
-#endif
-#ifndef MADCTL_MX
-    #define MADCTL_MX  0x40     ///< Right to left
-#endif
-#ifndef MADCTL_MV
-    #define MADCTL_MV  0x20     ///< Reverse Mode
-#endif
-#ifndef MADCTL_ML
-    #define MADCTL_ML  0x10     ///< LCD refresh Bottom to top
-#endif
-#ifndef MADCTL_RGB
-    #define MADCTL_RGB 0x00     ///< Red-Green-Blue pixel order
-#endif 
-#ifndef MADCTL_BGR
-    #define MADCTL_BGR 0x08     ///< Blue-Green-Red pixel order
-#endif
-#ifndef MADCTL_MH
-    #define MADCTL_MH  0x04     ///< LCD refresh right to left
-#endif
+
 /*
  * Control Pins
  * */
