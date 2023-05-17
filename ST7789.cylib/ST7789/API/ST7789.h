@@ -45,7 +45,7 @@
 #include "cytypes.h"
 #include "`$INSTANCE_NAME`_gfxfont.h"
 
-#define `$INSTANCE_NAME`_TFTWIDTH   240       ///< ST7789 max TFT width
+#define `$INSTANCE_NAME`_TFTWIDTH   172       ///< ST7789 max TFT width
 #define `$INSTANCE_NAME`_TFTHEIGHT  320       ///< ST7789 max TFT height
 
 #define `$INSTANCE_NAME`_CMD_DELAY  0x80

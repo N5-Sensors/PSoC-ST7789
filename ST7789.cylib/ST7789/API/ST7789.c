@@ -71,16 +71,14 @@ uint16_t `$INSTANCE_NAME`_Color565(uint8_t red, uint8_t green, uint8_t blue) {
 void `$INSTANCE_NAME`_Start(ST7789 *st7789)
 {
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_WriteCommand(0x01);
-    CyDelay(100);
     
-    // Power control A
-    `$INSTANCE_NAME`_WriteCommand(0xCB);
-    `$INSTANCE_NAME`_SpiWrite(0x39);
-    `$INSTANCE_NAME`_SpiWrite(0x2C);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x34);
-    `$INSTANCE_NAME`_SpiWrite(0x02);
+    // Software reset
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SWRESET);
+    CyDelay(150);
+    
+    // Out of sleep mode
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SLPOUT);
+    `$INSTANCE_NAME`_SpiWrite(0x55);
     
     `$INSTANCE_NAME`_WriteCommand(0xCF);
     `$INSTANCE_NAME`_SpiWrite(0x00);
