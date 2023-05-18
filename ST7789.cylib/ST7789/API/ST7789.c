@@ -207,7 +207,7 @@ void `$INSTANCE_NAME`_SetAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_CASET); //column addr set
     `$INSTANCE_NAME`_SPI_WRITE32(xa);
     
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_PASET); //row addr set
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_RASET); //row addr set
     `$INSTANCE_NAME`_SPI_WRITE32(ya);//y start
     
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_RAMWR); //write to RAM
