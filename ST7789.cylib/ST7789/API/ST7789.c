@@ -78,116 +78,43 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
     
     // Out of sleep mode
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SLPOUT);
-    `$INSTANCE_NAME`_SpiWrite(0x55);
+    CyDelay(10);
+
+    // Set color mode
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_COLMOD);
+    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_RGB_INTERFACE_65K | 
+        `$INSTANCE_NAME`_COLOR_FORMAT_16);
+    CyDelay(10);
+
+    // Memory access control direction
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
+    `$INSTANCE_NAME`_SpiWrite(1 << MADCTL_RGB_ORDER_SHIFT);
     
-    `$INSTANCE_NAME`_WriteCommand(0xCF);
+    // Column address set
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_CASET);
     `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0xC1);
-    `$INSTANCE_NAME`_SpiWrite(0x30);
-    
-    // Driver timing control A
-    `$INSTANCE_NAME`_WriteCommand(0xE8);
-    `$INSTANCE_NAME`_SpiWrite(0x85);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x78);
-    
-    // Driver timing control B
-    `$INSTANCE_NAME`_WriteCommand(0xEA);
     `$INSTANCE_NAME`_SpiWrite(0x00);
     `$INSTANCE_NAME`_SpiWrite(0x00);
+    `$INSTANCE_NAME`_SpiWrite(240);
     
-    // Power on sequence control
-    `$INSTANCE_NAME`_WriteCommand(0xED);
-    `$INSTANCE_NAME`_SpiWrite(0x64);
-    `$INSTANCE_NAME`_SpiWrite(0x03);
-    `$INSTANCE_NAME`_SpiWrite(0x12);
-    `$INSTANCE_NAME`_SpiWrite(0x81);
-    
-    `$INSTANCE_NAME`_WriteCommand(0xEF);
-    `$INSTANCE_NAME`_SpiWrite(0x03);
-    `$INSTANCE_NAME`_SpiWrite(0x80);
-    `$INSTANCE_NAME`_SpiWrite(0x02);
-    
-    // Pump ratio control
-    `$INSTANCE_NAME`_WriteCommand(0xF7);
-    `$INSTANCE_NAME`_SpiWrite(0x20);
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_PWCTR1);    //Power control
-    `$INSTANCE_NAME`_SpiWrite(0x23);   //VRH[5:0]
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_PWCTR2);    //Power control
-    `$INSTANCE_NAME`_SpiWrite(0x10);   //SAP[2:0];BT[3:0]
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_VMCTR1);    //VCM control
-    `$INSTANCE_NAME`_SpiWrite(0x3e);
-    `$INSTANCE_NAME`_SpiWrite(0x28);
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_VMCTR2);    //VCM control2
-    `$INSTANCE_NAME`_SpiWrite(0x86);  //--
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);    // Memory Access Control
-    `$INSTANCE_NAME`_SpiWrite(0x48);
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_VSCRSADD); // Vertical scroll
-    `$INSTANCE_NAME`_SPI_WRITE16(0);                 // Zero
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_PIXFMT);
-    `$INSTANCE_NAME`_SpiWrite(0x55);
-    
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_FRMCTR1);
+    // Row address set
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_RASET);
     `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x18);
-
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_DFUNCTR);    // Display Function Control
-    `$INSTANCE_NAME`_SpiWrite(0x08);
-    `$INSTANCE_NAME`_SpiWrite(0x82);
-    `$INSTANCE_NAME`_SpiWrite(0x27);
-    
-    `$INSTANCE_NAME`_WriteCommand(0xF2);    // 3Gamma Function Disable
     `$INSTANCE_NAME`_SpiWrite(0x00);
-    
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_GAMMASET);    //Gamma curve selected
-    `$INSTANCE_NAME`_SpiWrite(0x01);
+    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_TFTHEIGHT >> 8);
+    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_TFTHEIGHT & 0xFF);
 
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_GMCTRP1);    //Set Gamma
-    `$INSTANCE_NAME`_SpiWrite(0x0F);
-    `$INSTANCE_NAME`_SpiWrite(0x31);
-    `$INSTANCE_NAME`_SpiWrite(0x2B);
-    `$INSTANCE_NAME`_SpiWrite(0x0C);
-    `$INSTANCE_NAME`_SpiWrite(0x0E);
-    `$INSTANCE_NAME`_SpiWrite(0x08);
-    `$INSTANCE_NAME`_SpiWrite(0x4E);
-    `$INSTANCE_NAME`_SpiWrite(0xF1);
-    `$INSTANCE_NAME`_SpiWrite(0x37);
-    `$INSTANCE_NAME`_SpiWrite(0x07);
-    `$INSTANCE_NAME`_SpiWrite(0x10);
-    `$INSTANCE_NAME`_SpiWrite(0x03);
-    `$INSTANCE_NAME`_SpiWrite(0x0E);
-    `$INSTANCE_NAME`_SpiWrite(0x09);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
+    // hack
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_INVON);
+    CyDelay(10);
 
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_GMCTRN1);    //Set Gamma
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x0E);
-    `$INSTANCE_NAME`_SpiWrite(0x14);
-    `$INSTANCE_NAME`_SpiWrite(0x03);
-    `$INSTANCE_NAME`_SpiWrite(0x11);
-    `$INSTANCE_NAME`_SpiWrite(0x07);
-    `$INSTANCE_NAME`_SpiWrite(0x31);
-    `$INSTANCE_NAME`_SpiWrite(0xC1);
-    `$INSTANCE_NAME`_SpiWrite(0x48);
-    `$INSTANCE_NAME`_SpiWrite(0x08);
-    `$INSTANCE_NAME`_SpiWrite(0x0F);
-    `$INSTANCE_NAME`_SpiWrite(0x0C);
-    `$INSTANCE_NAME`_SpiWrite(0x31);
-    `$INSTANCE_NAME`_SpiWrite(0x36);
-    `$INSTANCE_NAME`_SpiWrite(0x0F);
-    
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SLPOUT);    //Exit Sleep
-    CyDelay(120);
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_DISPON);    //Display on
-    CyDelay(120);
-    `$INSTANCE_NAME`_EndWrite();
+    // Normal display on
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_NORON);
+    CyDelay(10);
+
+    // Main screen turn on
+    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_DISPON);
+    CyDelay(10);
     
     // Set struct parameters
     st7789->width   = `$INSTANCE_NAME`_TFTWIDTH;
@@ -207,22 +134,22 @@ void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
     st7789->rotation = m % 4; // can't be higher than 3
     switch (st7789->rotation) {
         case 0:
-            m = (MADCTL_MX | MADCTL_BGR);
+            m = MADCTL_MX | MADCTL_MY | MADCTL_RGB;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 1:
-            m = (MADCTL_MV | MADCTL_BGR);
+            m = MADCTL_MY | MADCTL_MV | MADCTL_RGB;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
         case 2:
-            m = (MADCTL_MY | MADCTL_BGR);
+            m = MADCTL_RGB;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 3:
-            m = (MADCTL_MX | MADCTL_MY | MADCTL_MV | MADCTL_BGR);
+            m = MADCTL_MX | MADCTL_MV | MADCTL_RGB;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
