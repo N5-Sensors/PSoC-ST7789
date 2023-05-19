@@ -63,8 +63,9 @@
 * Private function prototypes
 */
 void        `$INSTANCE_NAME`_WriteCommand(uint8_t cmd);
-void        `$INSTANCE_NAME`_SpiWrite(uint8_t data);
+void        `$INSTANCE_NAME`_SpiWrite(uint16_t data);
 uint8_t     `$INSTANCE_NAME`_SpiRead(void);
+void        `$INSTANCE_NAME`_SpiWrite_Cmd(uint16_t b);
 
 /**************************************************************************/
 /*!
@@ -252,6 +253,7 @@ void `$INSTANCE_NAME`_SetRotation(ILI9341 *ili9341, uint8_t m) {
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
     `$INSTANCE_NAME`_SpiWrite(m);
+    CyDelay(10);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -617,7 +619,7 @@ void `$INSTANCE_NAME`_EndWrite(void){
 void `$INSTANCE_NAME`_WriteCommand(uint8_t cmd)
 { 
     // `$DC_PIN`_LOW(); 
-    `$INSTANCE_NAME`_SpiWrite(cmd); 
+    `$INSTANCE_NAME`_SpiWrite_Cmd(cmd); 
     // `$DC_PIN`_HIGH();
 }
 
@@ -642,12 +644,21 @@ uint8_t `$INSTANCE_NAME`_SpiRead(void) {
 * @param b The byte to be transferred
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_SpiWrite(uint8_t b) {
+void `$INSTANCE_NAME`_SpiWrite(uint16_t b) {
+    //SPIM_1_PutArray(b,1);
+	b = b | 0x100;
+    `$SPI_Master`_WriteTxData(b);
+    // Without this delay, SPI write operation won't work
+    //while (0 != (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
+    //CyDelayUs(1);
+}
+
+void `$INSTANCE_NAME`_SpiWrite_Cmd(uint16_t b) {
     //SPIM_1_PutArray(b,1);
     `$SPI_Master`_WriteTxData(b);
     // Without this delay, SPI write operation won't work
     //while (0 != (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
-    CyDelayUs(1);
+    //CyDelayUs(1);
 }
 
 /* [] END OF FILE */
