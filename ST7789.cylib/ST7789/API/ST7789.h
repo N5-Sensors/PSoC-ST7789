@@ -1,7 +1,7 @@
 /*!
 * Adafruit GFX Library adapted for PSoC MCU
-* Author: Davide Marzorati
-* Date: July 27, 2018
+* Author: Oliver Zhang
+* Date: May 17, 2023
 * 
 * Written for Arduino platform by Limor "ladyada" Fried for Adafruit Industries.
 *
@@ -31,9 +31,14 @@
             rotation;       ///< Display rotation (0 thru 3)
         uint8_t
             wrap;           ///< If set, 'wrap' text at right edge of display
-        int16_t 
+        uint16_t 
             width,          ///< Display width as modified by current rotation
             height;         ///< Display height as modified by current rotation
+        uint8_t
+            colstart,       ///< Some displays need this changed to offset
+            rowstart,       ///< Some displays need this changed to offset
+            colstart2,      ///< Offset from the right
+            rowstart2;      ///< Offset from the bottom
         uint8_t cp437;      ///< If set, use correct CP437 charset (default is off)
         GFXfont *gfxFont;   ///< Pointer to special font
     } ST7789;
@@ -45,8 +50,10 @@
 #include "cytypes.h"
 #include "`$INSTANCE_NAME`_gfxfont.h"
 
-#define `$INSTANCE_NAME`_TFTWIDTH   240       ///< ST7789 max TFT width
+#define `$INSTANCE_NAME`_TFTWIDTH   172       ///< ST7789 max TFT width
 #define `$INSTANCE_NAME`_TFTHEIGHT  320       ///< ST7789 max TFT height
+
+#define `$INSTANCE_NAME`_CMD_DELAY  0x80
 
 #define `$INSTANCE_NAME`_NOP        0x00      ///< No-op register
 #define `$INSTANCE_NAME`_SWRESET    0x01      ///< Software reset register
@@ -58,25 +65,40 @@
 #define `$INSTANCE_NAME`_PTLON      0x12      ///< Partial Mode ON
 #define `$INSTANCE_NAME`_NORON      0x13      ///< Normal Display Mode ON
 
+#define `$INSTANCE_NAME`_INVOFF     0x20      ///< Display Inversion OFF
+#define `$INSTANCE_NAME`_INVON      0x21      ///< Display Inversion ON 
+#define `$INSTANCE_NAME`_DISPOFF    0x28      ///< Display OFF 
+#define `$INSTANCE_NAME`_DISPON     0x29      ///< Display ON
+#define `$INSTANCE_NAME`_CASET      0x2A      ///< Column Address Set
+#define `$INSTANCE_NAME`_RASET      0x2B      ///< Row Address Set
+#define `$INSTANCE_NAME`_RAMWR      0x2C      ///< Memory Write
+#define `$INSTANCE_NAME`_RAMRD      0x2E      ///< Memory Read
+
+#define `$INSTANCE_NAME`_PTLAR      0x30      ///< Partial Area
+#define `$INSTANCE_NAME`_TEOFF      0x34      ///< Tearing Effect Line OFF
+#define `$INSTANCE_NAME`_TEON       0x35      ///< Teating Effect Line ON
+#define `$INSTANCE_NAME`_MADCTL     0x36      ///< Memory Access Control
+#define `$INSTANCE_NAME`_COLMOD     0x3A      ///< Interface Pixel Format
+
+#define MADCTL_MY  0x80     ///< Bottom to top
+#define MADCTL_MX  0x40     ///< Right to left
+#define MADCTL_MV  0x20     ///< Reverse Mode
+#define MADCTL_ML  0x10     ///< LCD refresh Bottom to top
+#define MADCTL_RGB 0x00     ///< Red-Green-Blue pixel order
+
+#define `$INSTANCE_NAME`_RDID1      0xDA      ///< Read ID 1
+#define `$INSTANCE_NAME`_RDID2      0xDB      ///< Read ID 2
+#define `$INSTANCE_NAME`_RDID3      0xDC      ///< Read ID 3
+#define `$INSTANCE_NAME`_RDID4      0xDD      ///< Read ID 4
+
+#define `$INSTANCE_NAME`_GAMMASET   0x26      ///< Gamma Set 
+
 #define `$INSTANCE_NAME`_RDMODE     0x0A      ///< Read Display Power Mode 
 #define `$INSTANCE_NAME`_RDMADCTL   0x0B      ///< Read Display MADCTL
 #define `$INSTANCE_NAME`_RDPIXFMT   0x0C      ///< Read Display Pixel Format
 #define `$INSTANCE_NAME`_RDIMGFMT   0x0D      ///< Read Display Image Format 
 #define `$INSTANCE_NAME`_RDSELFDIAG 0x0F      ///< Read Display Self-Diagnostic Result
 
-#define `$INSTANCE_NAME`_INVOFF     0x20      ///< Display Inversion OFF
-#define `$INSTANCE_NAME`_INVON      0x21      ///< Display Inversion ON 
-#define `$INSTANCE_NAME`_GAMMASET   0x26      ///< Gamma Set 
-#define `$INSTANCE_NAME`_DISPOFF    0x28      ///< Display OFF 
-#define `$INSTANCE_NAME`_DISPON     0x29      ///< Display ON
-
-#define `$INSTANCE_NAME`_CASET      0x2A      ///< Column Address Set 
-#define `$INSTANCE_NAME`_PASET      0x2B      ///< Page Address Set
-#define `$INSTANCE_NAME`_RAMWR      0x2C      ///< Memory Write
-#define `$INSTANCE_NAME`_RAMRD      0x2E      ///< Memory Read
-
-#define `$INSTANCE_NAME`_PTLAR      0x30      ///< Partial Area
-#define `$INSTANCE_NAME`_MADCTL     0x36      ///< Memory Access Control
 #define `$INSTANCE_NAME`_VSCRSADD   0x37      ///< Vertical Scrolling Start Address
 #define `$INSTANCE_NAME`_PIXFMT     0x3A      ///< COLMOD: Pixel Format Set
 
@@ -94,14 +116,37 @@
 #define `$INSTANCE_NAME`_VMCTR1     0xC5      ///< VCOM Control 1
 #define `$INSTANCE_NAME`_VMCTR2     0xC7      ///< VCOM Control 2
 
-#define `$INSTANCE_NAME`_RDID1      0xDA      ///< Read ID 1
-#define `$INSTANCE_NAME`_RDID2      0xDB      ///< Read ID 2
-#define `$INSTANCE_NAME`_RDID3      0xDC      ///< Read ID 3
-#define `$INSTANCE_NAME`_RDID4      0xDD      ///< Read ID 4
-
 #define `$INSTANCE_NAME`_GMCTRP1    0xE0      ///< Positive Gamma Correction
 #define `$INSTANCE_NAME`_GMCTRN1    0xE1      ///< Negative Gamma Correction
 //#define `$INSTANCE_NAME`_PWCTR6     0xFC
+
+// COLMOD address
+#define `$INSTANCE_NAME`_RGB_INTERFACE_SHIFT 4
+#define `$INSTANCE_NAME`_COLOR_FORMAT_SHIFT 0
+
+typedef enum
+{
+    `$INSTANCE_NAME`_RGB_INTERFACE_65K = 5 << `$INSTANCE_NAME`_RGB_INTERFACE_SHIFT,
+    `$INSTANCE_NAME`_RGB_INTERFACE_262K = 6 << `$INSTANCE_NAME`_RGB_INTERFACE_SHIFT
+} RGB_INTERFACE_OPTS;
+
+typedef enum
+{
+    `$INSTANCE_NAME`_COLOR_FORMAT_12 = 3 << `$INSTANCE_NAME`_COLOR_FORMAT_SHIFT,
+    `$INSTANCE_NAME`_COLOR_FORMAT_16 = 5 << `$INSTANCE_NAME`_COLOR_FORMAT_SHIFT,
+    `$INSTANCE_NAME`_COLOR_FORMAT_18 = 6 << `$INSTANCE_NAME`_COLOR_FORMAT_SHIFT,
+    `$INSTANCE_NAME`_COLOR_FORMAT_16M = 7 << `$INSTANCE_NAME`_COLOR_FORMAT_SHIFT
+} COLOR_FORMAT_OPTS;
+
+typedef enum
+{
+    MADCTL_LATCH_ORDER_SHIFT = 2,
+    MADCTL_RGB_ORDER_SHIFT = 3,
+    MADCTL_LINE_ORDER_SHIFT = 4,
+    MADCTL_PAGE_COL_ORDER_SHIFT = 5,
+    MADCTL_COL_ORDER_SHIFT = 6,
+    MADCTL_PAGE_ORDER_SHIFT = 7
+} MADCTL_SHIFTS;
 
 
 // Color definitions
