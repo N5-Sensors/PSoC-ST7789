@@ -62,6 +62,15 @@ uint16_t `$INSTANCE_NAME`_Color565(uint8_t red, uint8_t green, uint8_t blue) {
     return ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | ((blue & 0xF8) >> 3);
 }
 
+/**************************************************************************/
+/*!
+*    @brief   Sends over the SPI the register changes to the ST7789 chip
+*    @param   cmdByte the command byte
+*    @param   dataBytes the pointer to the data bytes
+*    @param   numDataBytes the number of data bytes to send
+*    
+*/
+/**************************************************************************/
 static void sendCommand(uint8_t cmdByte, uint8_t *dataBytes, uint8_t numDataBytes)
 {
     `$INSTANCE_NAME`_StartWrite();

@@ -35,10 +35,10 @@
             width,          ///< Display width as modified by current rotation
             height;         ///< Display height as modified by current rotation
         uint8_t
-            colstart,
-            rowstart,
-            colstart2,
-            rowstart2;
+            colstart,       ///< Some displays need this changed to offset
+            rowstart,       ///< Some displays need this changed to offset
+            colstart2,      ///< Offset from the right
+            rowstart2;      ///< Offset from the bottom
         uint8_t cp437;      ///< If set, use correct CP437 charset (default is off)
         GFXfont *gfxFont;   ///< Pointer to special font
     } ST7789;
