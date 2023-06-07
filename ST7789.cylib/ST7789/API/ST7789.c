@@ -12,7 +12,7 @@
 
 #include "`$INSTANCE_NAME`.h"
 #include "`$CS_PIN`.h"
-// #include "`$DC_PIN`.h"
+#include "`$DC_PIN`.h"
 #include "`$SPI_Master`.h"
 
 #ifndef HIGH
@@ -21,6 +21,8 @@
 #ifndef LOW
     #define LOW 0
 #endif
+
+#define NUM_DATA_BYTES_MAX 4
 
 /*
  * Control Pins
@@ -43,9 +45,8 @@
 * Private function prototypes
 */
 void        `$INSTANCE_NAME`_WriteCommand(uint8_t cmd);
-void        `$INSTANCE_NAME`_SpiWrite(uint16_t data);
+void        `$INSTANCE_NAME`_SpiWrite(uint8_t data);
 uint8_t     `$INSTANCE_NAME`_SpiRead(void);
-void        `$INSTANCE_NAME`_SpiWrite_Cmd(uint16_t b);
 
 /**************************************************************************/
 /*!
@@ -61,6 +62,19 @@ uint16_t `$INSTANCE_NAME`_Color565(uint8_t red, uint8_t green, uint8_t blue) {
     return ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | ((blue & 0xF8) >> 3);
 }
 
+static void sendCommand(uint8_t cmdByte, uint8_t *dataBytes, uint8_t numDataBytes)
+{
+    `$INSTANCE_NAME`_StartWrite();
+    `$INSTANCE_NAME`_WriteCommand(cmdByte);
+    
+    for (uint8_t i = 0; i < numDataBytes; i++)
+    {
+        `$INSTANCE_NAME`_SpiWrite(dataBytes[i]);
+    }
+
+    `$INSTANCE_NAME`_EndWrite();
+}
+
 /**************************************************************************/
 /*!
 *    @brief   Initialize ST7789 chip
@@ -69,54 +83,59 @@ uint16_t `$INSTANCE_NAME`_Color565(uint8_t red, uint8_t green, uint8_t blue) {
 */
 /**************************************************************************/
 void `$INSTANCE_NAME`_Start(ST7789 *st7789)
-{
-    `$INSTANCE_NAME`_StartWrite();
-    
-    // Software reset
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SWRESET);
+{    
+    // Software reset'
+    sendCommand(`$INSTANCE_NAME`_SWRESET, NULL, 0);
     CyDelay(150);
     
     // Out of sleep mode
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_SLPOUT);
+    sendCommand(`$INSTANCE_NAME`_SLPOUT, NULL, 0);
     CyDelay(10);
 
     // Set color mode
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_COLMOD);
-    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_RGB_INTERFACE_65K | 
-        `$INSTANCE_NAME`_COLOR_FORMAT_16);
+    uint8_t data[NUM_DATA_BYTES_MAX] = {
+        `$INSTANCE_NAME`_RGB_INTERFACE_65K | `$INSTANCE_NAME`_COLOR_FORMAT_16
+    };
+    sendCommand(`$INSTANCE_NAME`_COLMOD, data, 1);
     CyDelay(10);
 
     // Memory access control direction
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
-    `$INSTANCE_NAME`_SpiWrite(1 << MADCTL_RGB_ORDER_SHIFT);
+    data[0] = 1 << MADCTL_RGB_ORDER_SHIFT;
+    sendCommand(`$INSTANCE_NAME`_MADCTL, data, 1);
     
     // Column address set
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_CASET);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(240);
+    data[0] = 0x00;
+    data[1] = 0x00;
+    data[2] = 0x00;
+    data[3] = 240;
+    
+    sendCommand(`$INSTANCE_NAME`_CASET, data, NUM_DATA_BYTES_MAX);
     
     // Row address set
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_RASET);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(0x00);
-    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_TFTHEIGHT >> 8);
-    `$INSTANCE_NAME`_SpiWrite(`$INSTANCE_NAME`_TFTHEIGHT & 0xFF);
+    data[0] = 0x00;
+    data[1] = 0x00;
+    data[2] = `$INSTANCE_NAME`_TFTHEIGHT >> 8;
+    data[3] = `$INSTANCE_NAME`_TFTHEIGHT & 0xFF;
+    sendCommand(`$INSTANCE_NAME`_RASET, data, NUM_DATA_BYTES_MAX);
 
     // hack
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_INVON);
+    sendCommand(`$INSTANCE_NAME`_INVON, NULL, 0);
     CyDelay(10);
 
     // Normal display on
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_NORON);
+    sendCommand(`$INSTANCE_NAME`_NORON, NULL, 0);
     CyDelay(10);
 
     // Main screen turn on
-    `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_DISPON);
+    sendCommand(`$INSTANCE_NAME`_DISPON, NULL, 0);
     CyDelay(10);
     
     // Set struct parameters
+    st7789->rowstart = (int)((320 - `$INSTANCE_NAME`_TFTHEIGHT) / 2);
+    st7789->rowstart2 = st7789->rowstart;
+
+    st7789->colstart = (int)((240 - `$INSTANCE_NAME`_TFTWIDTH) / 2);
+    st7789->colstart2 = st7789->colstart;
     st7789->width   = `$INSTANCE_NAME`_TFTWIDTH;
     st7789->height  = `$INSTANCE_NAME`_TFTHEIGHT;
     st7789->cp437   = 1;
@@ -131,25 +150,35 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
 */
 /**************************************************************************/
 void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
-    st7789->rotation = m % 4; // can't be higher than 3
+    st7789->rotation = m & 3; // can't be higher than 3
+
+    uint8_t madctl = 0;
     switch (st7789->rotation) {
         case 0:
-            m = MADCTL_MX | MADCTL_MY | MADCTL_RGB;
+            madctl = MADCTL_MX | MADCTL_MY | MADCTL_RGB;
+            st7789->cursor_x = st7789->colstart;
+            st7789->cursor_y = st7789->rowstart;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 1:
-            m = MADCTL_MY | MADCTL_MV | MADCTL_RGB;
+            madctl = MADCTL_MY | MADCTL_MV | MADCTL_RGB;
+            st7789->cursor_x = st7789->rowstart;
+            st7789->cursor_y = st7789->colstart2;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
         case 2:
-            m = MADCTL_RGB;
+            madctl = MADCTL_RGB;
+            st7789->cursor_x = st7789->colstart2;
+            st7789->cursor_y = st7789->rowstart2;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 3:
-            m = MADCTL_MX | MADCTL_MV | MADCTL_RGB;
+            madctl = MADCTL_MX | MADCTL_MV | MADCTL_RGB;
+            st7789->cursor_x = st7789->rowstart2;
+            st7789->cursor_y = st7789->colstart;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
@@ -157,8 +186,7 @@ void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
 
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
-    `$INSTANCE_NAME`_SpiWrite(m);
-    CyDelay(10);
+    `$INSTANCE_NAME`_SpiWrite(madctl);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -416,10 +444,10 @@ void `$INSTANCE_NAME`_DrawFastHLine(ST7789 *st7789, int16_t x, int16_t y,
 *   @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_FillRect(ST7789 *ili3941, int16_t x, int16_t y, int16_t w, int16_t h,
+void `$INSTANCE_NAME`_FillRect(ST7789 *st7789, int16_t x, int16_t y, int16_t w, int16_t h,
         uint16_t color) {
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_WriteFillRect(ili3941, x,y,w,h,color);
+    `$INSTANCE_NAME`_WriteFillRect(st7789, x,y,w,h,color);
     `$INSTANCE_NAME`_EndWrite();
 }
 
@@ -523,9 +551,9 @@ void `$INSTANCE_NAME`_EndWrite(void){
 /**************************************************************************/
 void `$INSTANCE_NAME`_WriteCommand(uint8_t cmd)
 { 
-    // `$DC_PIN`_LOW(); 
-    `$INSTANCE_NAME`_SpiWrite_Cmd(cmd); 
-    // `$DC_PIN`_HIGH();
+    `$DC_PIN`_LOW(); 
+    `$INSTANCE_NAME`_SpiWrite(cmd); 
+    `$DC_PIN`_HIGH();
 }
 
 /**************************************************************************/
@@ -549,21 +577,12 @@ uint8_t `$INSTANCE_NAME`_SpiRead(void) {
 * @param b The byte to be transferred
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_SpiWrite(uint16_t b) {
-    //SPIM_1_PutArray(b,1);
-	b = b | 0x100;
-    `$SPI_Master`_WriteTxData(b);
-    // Without this delay, SPI write operation won't work
-    //while (0 != (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
-    //CyDelayUs(1);
-}
-
-void `$INSTANCE_NAME`_SpiWrite_Cmd(uint16_t b) {
+void `$INSTANCE_NAME`_SpiWrite(uint8_t b) {
     //SPIM_1_PutArray(b,1);
     `$SPI_Master`_WriteTxData(b);
     // Without this delay, SPI write operation won't work
     //while (0 != (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
-    //CyDelayUs(1);
+    CyDelayUs(1);
 }
 
 /* [] END OF FILE */

@@ -31,9 +31,14 @@
             rotation;       ///< Display rotation (0 thru 3)
         uint8_t
             wrap;           ///< If set, 'wrap' text at right edge of display
-        int16_t 
+        uint16_t 
             width,          ///< Display width as modified by current rotation
             height;         ///< Display height as modified by current rotation
+        uint8_t
+            colstart,
+            rowstart,
+            colstart2,
+            rowstart2;
         uint8_t cp437;      ///< If set, use correct CP437 charset (default is off)
         GFXfont *gfxFont;   ///< Pointer to special font
     } ST7789;
