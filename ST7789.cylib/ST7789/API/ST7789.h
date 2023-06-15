@@ -39,6 +39,9 @@
             rowstart,       ///< Some displays need this changed to offset
             colstart2,      ///< Offset from the right
             rowstart2;      ///< Offset from the bottom
+        int16_t
+            xstart,         ///< Internal framebuffer X offset
+            ystart;         ///< Internal framebuffer Y offset
         uint8_t cp437;      ///< If set, use correct CP437 charset (default is off)
         GFXfont *gfxFont;   ///< Pointer to special font
     } ST7789;
@@ -50,8 +53,8 @@
 #include "cytypes.h"
 #include "`$INSTANCE_NAME`_gfxfont.h"
 
-#define `$INSTANCE_NAME`_TFTWIDTH   172       ///< ST7789 max TFT width
-#define `$INSTANCE_NAME`_TFTHEIGHT  320       ///< ST7789 max TFT height
+#define `$INSTANCE_NAME`_TFTWIDTH   320       ///< ST7789 max TFT width
+#define `$INSTANCE_NAME`_TFTHEIGHT  172       ///< ST7789 max TFT height
 
 #define `$INSTANCE_NAME`_CMD_DELAY  0x80
 
@@ -204,10 +207,10 @@ void      `$INSTANCE_NAME`_WriteFastHLine(ST7789 *st7789, int16_t x, int16_t y,
             int16_t w, uint16_t color);
 
 // Transaction API not used by GFX
-void      `$INSTANCE_NAME`_SetAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+void      `$INSTANCE_NAME`_SetAddrWindow(ST7789 *st7789, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 void      `$INSTANCE_NAME`_WritePixels(uint16_t * colors, uint32_t len);
 void      `$INSTANCE_NAME`_WritePixelColor(uint16_t color);
-void      `$INSTANCE_NAME`_WritePixelFast(int16_t sw, int16_t sh, int16_t x, int16_t y, uint16_t color);
+void      `$INSTANCE_NAME`_WritePixelFast(ST7789 *st7789, int16_t sw, int16_t sh, int16_t x, int16_t y, uint16_t color);
 void      `$INSTANCE_NAME`_WriteColor(uint16_t color, uint32_t len);
 void      `$INSTANCE_NAME`_PushColor(uint16_t color);
 
