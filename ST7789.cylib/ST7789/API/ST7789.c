@@ -193,6 +193,7 @@ void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
             break;
     }
 
+    sendCommand(`$INSTANCE_NAME`_MADCTL, &madctl, 1);
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
     `$INSTANCE_NAME`_SpiWrite(madctl);
