@@ -89,9 +89,11 @@ static void sendCommand(uint8_t cmdByte, uint8_t *dataBytes, uint8_t numDataByte
 *    @brief   Initialize ST7789 chip
 *    Connects to the ST7789 over SPI and sends initialization procedure commands
 *    @param   st7789 ST7789 object to store width and height dimensions
+*    @param   w the actual width of the screen
+*    @param   h the actual height of the screen
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_Start(ST7789 *st7789)
+void `$INSTANCE_NAME`_Start(ST7789 *st7789, uint16_t w, uint16_t h)
 {    
     // Software reset'
     sendCommand(`$INSTANCE_NAME`_SWRESET, NULL, 0);
@@ -116,7 +118,7 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
     data[0] = 0x00;
     data[1] = 0x00;
     data[2] = 0x00;
-    data[3] = 240;
+    data[3] = `$INSTANCE_NAME`_TFTWIDTH;
     
     sendCommand(`$INSTANCE_NAME`_CASET, data, NUM_DATA_BYTES_MAX);
     
@@ -140,10 +142,10 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
     CyDelay(10);
     
     // Set struct parameters
-    st7789->rowstart = (int)((320 - `$INSTANCE_NAME`_TFTHEIGHT) / 2);
+    st7789->rowstart = (int)((`$INSTANCE_NAME`_TFTHEIGHT - h) / 2);
     st7789->rowstart2 = st7789->rowstart;
 
-    st7789->colstart = (int)((240 - `$INSTANCE_NAME`_TFTWIDTH) / 2);
+    st7789->colstart = (int)((`$INSTANCE_NAME`_TFTWIDTH - w) / 2);
     st7789->colstart2 = st7789->colstart;
     st7789->width   = `$INSTANCE_NAME`_TFTWIDTH;
     st7789->height  = `$INSTANCE_NAME`_TFTHEIGHT;

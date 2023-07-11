@@ -183,7 +183,7 @@ typedef enum
 
 
     
-void      `$INSTANCE_NAME`_Start(ST7789 *`$INSTANCE_NAME`);
+void      `$INSTANCE_NAME`_Start(ST7789 *st7789, uint16_t w, uint16_t h);
 void      `$INSTANCE_NAME`_SetRotation(ST7789 *`$INSTANCE_NAME`, uint8_t r);
 void      `$INSTANCE_NAME`_InvertDisplay(uint8_t i);
 void      `$INSTANCE_NAME`_ScrollTo(uint16_t y);
