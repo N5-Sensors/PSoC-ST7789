@@ -972,8 +972,8 @@ size_t `$INSTANCE_NAME`_PrintlnChar(ST7789 *st7789, char c) {
 */
 /**************************************************************************/
 void `$INSTANCE_NAME`_SetCursor(ST7789 *st7789, int16_t x, int16_t y) {
-    st7789->cursor_x = x;
-    st7789->cursor_y = y;
+    st7789->cursor_x = x + st7789->xstart;
+    st7789->cursor_y = y + st7789->ystart;
 }
 
 /**************************************************************************/

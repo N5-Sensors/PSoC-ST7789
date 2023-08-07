@@ -89,9 +89,11 @@ static void sendCommand(uint8_t cmdByte, uint8_t *dataBytes, uint8_t numDataByte
 *    @brief   Initialize ST7789 chip
 *    Connects to the ST7789 over SPI and sends initialization procedure commands
 *    @param   st7789 ST7789 object to store width and height dimensions
+*    @param   w the actual width of the screen
+*    @param   h the actual height of the screen
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_Start(ST7789 *st7789)
+void `$INSTANCE_NAME`_Start(ST7789 *st7789, uint16_t w, uint16_t h)
 {    
     // Software reset'
     sendCommand(`$INSTANCE_NAME`_SWRESET, NULL, 0);
@@ -116,7 +118,7 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
     data[0] = 0x00;
     data[1] = 0x00;
     data[2] = 0x00;
-    data[3] = 240;
+    data[3] = `$INSTANCE_NAME`_TFTWIDTH;
     
     sendCommand(`$INSTANCE_NAME`_CASET, data, NUM_DATA_BYTES_MAX);
     
@@ -140,10 +142,10 @@ void `$INSTANCE_NAME`_Start(ST7789 *st7789)
     CyDelay(10);
     
     // Set struct parameters
-    st7789->rowstart = (int)((320 - `$INSTANCE_NAME`_TFTHEIGHT) / 2);
+    st7789->rowstart = (int)((`$INSTANCE_NAME`_TFTHEIGHT - h) / 2);
     st7789->rowstart2 = st7789->rowstart;
 
-    st7789->colstart = (int)((240 - `$INSTANCE_NAME`_TFTWIDTH) / 2);
+    st7789->colstart = (int)((`$INSTANCE_NAME`_TFTWIDTH - w) / 2);
     st7789->colstart2 = st7789->colstart;
     st7789->width   = `$INSTANCE_NAME`_TFTWIDTH;
     st7789->height  = `$INSTANCE_NAME`_TFTHEIGHT;
@@ -165,34 +167,35 @@ void `$INSTANCE_NAME`_SetRotation(ST7789 *st7789, uint8_t m) {
     switch (st7789->rotation) {
         case 0:
             madctl = MADCTL_MX | MADCTL_MY | MADCTL_RGB;
-            st7789->cursor_x = st7789->colstart;
-            st7789->cursor_y = st7789->rowstart;
+            st7789->xstart = st7789->colstart;
+            st7789->ystart = st7789->rowstart;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 1:
             madctl = MADCTL_MY | MADCTL_MV | MADCTL_RGB;
-            st7789->cursor_x = st7789->rowstart;
-            st7789->cursor_y = st7789->colstart2;
+            st7789->xstart = st7789->rowstart;
+            st7789->ystart = st7789->colstart2;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
         case 2:
             madctl = MADCTL_RGB;
-            st7789->cursor_x = st7789->colstart2;
-            st7789->cursor_y = st7789->rowstart2;
+            st7789->xstart = st7789->colstart2;
+            st7789->ystart = st7789->rowstart2;
             st7789->width  = `$INSTANCE_NAME`_TFTWIDTH;
             st7789->height = `$INSTANCE_NAME`_TFTHEIGHT;
             break;
         case 3:
             madctl = MADCTL_MX | MADCTL_MV | MADCTL_RGB;
-            st7789->cursor_x = st7789->rowstart2;
-            st7789->cursor_y = st7789->colstart;
+            st7789->xstart = st7789->rowstart2;
+            st7789->ystart = st7789->colstart;
             st7789->width  = `$INSTANCE_NAME`_TFTHEIGHT;
             st7789->height = `$INSTANCE_NAME`_TFTWIDTH;
             break;
     }
 
+    sendCommand(`$INSTANCE_NAME`_MADCTL, &madctl, 1);
     `$INSTANCE_NAME`_StartWrite();
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_MADCTL);
     `$INSTANCE_NAME`_SpiWrite(madctl);
@@ -237,10 +240,10 @@ void `$INSTANCE_NAME`_ScrollTo(uint16_t y) {
 *   @param   h  Height of rectangle
 */
 /**************************************************************************/
-void `$INSTANCE_NAME`_SetAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+void `$INSTANCE_NAME`_SetAddrWindow(ST7789 *st7789, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
-    uint32_t xa = ((uint32_t) x << 16) | ( x + w - 1 );
-    uint32_t ya = ((uint32_t) y << 16) | ( y + h - 1 );
+    uint32_t xa = ((uint32_t) x << 16) | ( x + w + st7789->xstart - 1 );
+    uint32_t ya = ((uint32_t) y << 16) | ( y + h + st7789->ystart - 1 );
     `$INSTANCE_NAME`_WriteCommand(`$INSTANCE_NAME`_CASET); //column addr set
     `$INSTANCE_NAME`_SPI_WRITE32(xa);
     
@@ -312,16 +315,16 @@ void `$INSTANCE_NAME`_WriteColor(uint16_t color, uint32_t len){
 /**************************************************************************/
 void `$INSTANCE_NAME`_WritePixelFull(ST7789 *st7789, int16_t x, int16_t y, uint16_t color) {
     if((x < 0) ||(x >= st7789->width) || (y < 0) || (y >= st7789->height)) return;
-    `$INSTANCE_NAME`_SetAddrWindow(x,y,1,1);
+    `$INSTANCE_NAME`_SetAddrWindow(st7789, x, y, 1, 1);
     `$INSTANCE_NAME`_WriteColor(color, 1);
 }
 
 // New write pixel
 
-void `$INSTANCE_NAME`_WritePixelFast(int16_t sw, int16_t sh, int16_t x, int16_t y, uint16_t color)
+void `$INSTANCE_NAME`_WritePixelFast(ST7789 *st7789, int16_t sw, int16_t sh, int16_t x, int16_t y, uint16_t color)
 {
     if((x < 0) ||(x >= sw) || (y < 0) || (y >= sh)) return;
-    `$INSTANCE_NAME`_SetAddrWindow(x,y,1,1);
+    `$INSTANCE_NAME`_SetAddrWindow(st7789, x, y, 1, 1);
     `$INSTANCE_NAME`_WriteColor(color, 1);
 }
 /**************************************************************************/
@@ -367,7 +370,7 @@ void `$INSTANCE_NAME`_WriteFillRect(ST7789 *st7789, int16_t x, int16_t y,
     if(y2 >= st7789->height) h = st7789->height - y;
 
     int32_t len = (int32_t)w * h;
-    `$INSTANCE_NAME`_SetAddrWindow(x, y, w, h);
+    `$INSTANCE_NAME`_SetAddrWindow(st7789, x, y, w, h);
     `$INSTANCE_NAME`_WriteColor(color, len);
 }
 
@@ -502,7 +505,7 @@ void `$INSTANCE_NAME`_DrawRGBBitmap(ST7789 *st7789, int16_t x, int16_t y,
 
     pcolors += by1 * saveW + bx1; // Offset bitmap ptr to clipped top-left
     `$INSTANCE_NAME`_StartWrite();
-    `$INSTANCE_NAME`_SetAddrWindow(x, y, w, h); // Clipped area
+    `$INSTANCE_NAME`_SetAddrWindow(st7789, x, y, w, h); // Clipped area
     while(h--) { // For each (clipped) scanline...
       `$INSTANCE_NAME`_WritePixels(pcolors, w); // Push one (clipped) row
       pcolors += saveW; // Advance pointer by one full (unclipped) line
